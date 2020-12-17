@@ -10,7 +10,7 @@ import pandas as pd
 from io import BytesIO
 import json
 
-DEBUG=10
+DEBUG=100
 
 
 class sRNA_Provider:
@@ -308,7 +308,7 @@ class sRNA_Provider:
 
 
 
-    def blast_sRNAs_against_genome(self, list_sRNA, e_cutoff, identity_perc_cutoff):
+    def blast_sRNAs_against_genome_for_DEBUG(self, list_sRNA, e_cutoff, identity_perc_cutoff):
         for list_sRNA_per_record in list_sRNA:
             list_sRNA_per_record_ = list_sRNA_per_record[0:DEBUG]    ####For debuging only!
             #list_sRNA_per_record_ = list_sRNA_per_record
@@ -318,7 +318,7 @@ class sRNA_Provider:
 
 
 
-    def blast_sRNAs_against_genome_ori(self, list_sRNA, e_cutoff, identity_perc_cutoff):
+    def blast_sRNAs_against_genome(self, list_sRNA, e_cutoff, identity_perc_cutoff):
         for list_sRNA_per_record in list_sRNA:
             self.__blast_sRNA_against_genome(list_sRNA_per_record, e_cutoff, identity_perc_cutoff)
         return (list_sRNA)
@@ -402,7 +402,6 @@ class sRNA_Provider:
 
 
     def load_tags(self, file_name):
-        #file_name = '/Users/jazminromero/development_gitlab/development/srna/input_tags.xlsx'
         df = pd.read_excel(file_name)
         gene_tags = df['Gene_Tag'].values.tolist()
         locus_tags = df['Locus_Tag'].values.tolist()
