@@ -14,6 +14,7 @@ def main(argv):
    length = 21
    e_cutoff = 0.01
    identity_perc_cutoff = 0.8
+   tags_filename = None
 
    try:
       opts, args = getopt.getopt(argv,"d:i:f:p:l:e:m:t:r:")
@@ -52,7 +53,7 @@ def main(argv):
                                     recompute_position = arg
 
    file_sequence = base_directory+'/'+seq_file
-   file_tags = base_directory + '/'+ tags_filename
+
    if os.path.isfile(file_sequence):
       print('\nInput parameters: \n')
       print('Input file:', file_sequence)
@@ -82,11 +83,12 @@ def main(argv):
 
       #Compute sRNAS
       if tags_filename:
-          if os.path.isfile(file_tags):
+         file_tags = base_directory + '/' + tags_filename
+         if os.path.isfile(file_tags):
              print('2. Computing sRNAs - locus/gene tags \n')
              gene_tags, locus_tags = sRNA_provider.load_tags(file_tags)
              list_sRNA = sRNA_provider.compute_sRNAs_from_genome(sequence_record_list, int(position), int(length),gene_tags, locus_tags)
-          else:
+         else:
              print ("Tag file could not be found!")
              sys.exit(2)
       else:
