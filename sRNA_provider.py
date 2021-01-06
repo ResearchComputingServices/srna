@@ -1,6 +1,7 @@
 from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
+from Bio import Entrez
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 import sys
 import traceback
@@ -9,13 +10,47 @@ from blast import Blast
 import pandas as pd
 from io import BytesIO
 import json
+import os.path
 
-DEBUG=100
+
+DEBUG=5
+Entrez.email = "jazminromero@cunet.carleton.ca"  # Always tell NCBI who you are
 
 
 class sRNA_Provider:
 
     blastProvider = Blast()
+
+
+
+
+
+    def fetch_and_save_input_sequence(self, accession, base_directory):
+        filename = base_directory + '/' + accession + ".gbk"
+        if not os.path.isfile(filename):
+            # Downloading...
+            net_handle = Entrez.efetch(
+                db="nucleotide", id=accession, rettype="gb", retmode="text"
+            )
+            out_handle = open(filename, "w")
+            out_handle.write(net_handle.read())
+            out_handle.close()
+            net_handle.close()
+            print("Saved")
+
+        print("Parsing...")
+        seq_iterator = SeqIO.parse(filename, "genbank")
+        seq_record_list = list(seq_iterator)
+        return seq_record_list
+
+    def fetch_input_sequence(self, accession, base_directory):
+        # Downloading...
+        handle = Entrez.efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
+        print("Parsing...")
+        seq_iterator = SeqIO.parse(handle, "genbank")
+        seq_record_list = list(seq_iterator)
+        return seq_record_list
+
 
     #Reads a data file and return a list of seq_record
     def read_input_sequence(self, input_file, format, alphabet):
@@ -226,20 +261,33 @@ class sRNA_Provider:
 
 
 
-    def __get_sRNA_from_input_listCDS(self, record_index, seq_record, position, length, gene_tags, locus_tags):
+    def __get_sRNA_from_input_listCDS(self, record_index, seq_record, position, length, gene_tags_input, locus_tags_input):
 
         list_sRNA = []
         for feature in seq_record.features:
             if feature.type == 'CDS':
                 gene = ''
                 locus_tag = ''
+
                 if 'gene' in feature.qualifiers.keys() and len(feature.qualifiers['gene'])>0:
                     gene = feature.qualifiers['gene']
 
-                if 'locus_tag' in feature.qualifiers.keys() and len(feature.qualifiers['locus_tag'][0])>0:
+                if 'locus_tag' in feature.qualifiers.keys() and len(feature.qualifiers['locus_tag'][0]) > 0:
                     locus_tag = feature.qualifiers['locus_tag']
 
-                if gene[0] in gene_tags or locus_tag[0] in locus_tags:
+                compute  = False
+                for g in gene:
+                    if g in gene_tags_input:
+                        compute = True
+                        break
+
+                if not compute:
+                    for l in locus_tag:
+                        if l in locus_tags_input:
+                            compute = True
+                            break
+
+                if compute:
 
                     sequence = seq_record.seq
                     if feature.location.strand == 1:  # Forward
@@ -356,8 +404,9 @@ class sRNA_Provider:
         return list_recomputed_sRNAs
 
 
-    def sRNA_hit_to_dict(self, srna, hit):
+    def sRNA_hit_to_dict(self, srna, record, hit=None):
         dict={}
+        dict["Record"] = str(record)
         dict["sRNA"] = str(srna.sequence_sRNA)
         dict["Strand"] = srna.strand
         dict["Gene"] = srna.gene
@@ -368,17 +417,23 @@ class sRNA_Provider:
         dict["Shift/Position"] = srna.shift
         dict["CDS Start"]= self._start_in_file(srna.start_position_CDS)
         dict["CDS End"]= self._end_in_file(srna.end_position_CDS)
-        dict["Hit Start"]= int(hit.sbjct_start)
-        dict["Hit End"]= hit.sbjct_end
-        dict["Expected Value"]= hit.expect
-        dict["Align Length"]= hit.align_length
-        dict["Perc. Identity"]= (hit.score/srna.length_sRNA)*100
+        if hit:
+            dict["Hit Start"]= int(hit.sbjct_start)
+            dict["Hit End"]= hit.sbjct_end
+            dict["Expected Value"]= hit.expect
+            dict["Align Length"]= hit.align_length
+            dict["Perc. Identity"]= (hit.score/srna.length_sRNA)*100
+        else:
+            dict["Hit Start"] = ''
+            dict["Hit End"] = ''
+            dict["Expected Value"] = ''
+            dict["Align Length"] = ''
+            dict["Perc. Identity"] = ''
+
         return dict
 
 
     def write_tags_to_file(self, base_directory, list_sRNA):
-        file_name = base_directory + '/tags.xlsx'
-
         gene_tags = []
         locus_tags = []
 
@@ -394,7 +449,20 @@ class sRNA_Provider:
                     if locus not in locus_tags:
                         locus_tags.append(locus)
 
+        if len(gene_tags)!=len(locus_tags):
+            if len(gene_tags)>len(locus_tags):
+                i = len(locus_tags)
+                while (i<len(gene_tags)):
+                    locus_tags.append('')
+                    i= i +1
 
+            if len(locus_tags) > len(gene_tags):
+                i = len(gene_tags)
+                while (i < len(locus_tags)):
+                    gene_tags.append('')
+                    i = i + 1
+
+        file_name = base_directory + '/tags.xlsx'
         dict = {'Gene_Tag': gene_tags, 'Locus_Tag': locus_tags}
         df = pd.DataFrame(dict)
         df.to_excel(file_name, header=True, index=False)
@@ -403,8 +471,21 @@ class sRNA_Provider:
 
     def load_tags(self, file_name):
         df = pd.read_excel(file_name)
-        gene_tags = df['Gene_Tag'].values.tolist()
-        locus_tags = df['Locus_Tag'].values.tolist()
+        gene_tags_input = df['Gene_Tag'].values.tolist()
+        locus_tags_input = df['Locus_Tag'].values.tolist()
+
+        #Clean lists
+        gene_tags = []
+        for tag in gene_tags_input:
+            if str(tag)!='nan':
+                gene_tags.append(tag)
+
+        locus_tags = []
+        for tag in locus_tags_input:
+            if str(tag) != 'nan':
+                locus_tags.append(tag)
+
+
         return gene_tags, locus_tags
 
 
@@ -428,6 +509,7 @@ class sRNA_Provider:
        df_ginfo.rename(columns={0: ' '}, inplace=True)
 
        headings = {
+           "Record": '',
            "sRNA": '',
            "Strand" :'',
            "Gene":'',
@@ -452,13 +534,21 @@ class sRNA_Provider:
            df_headings.to_excel(writer, startrow=9, sheet_name="{} summary".format(name + 'sRNA'), index=False)
 
            row = 10
+           index = 0
            for record in list_sRNA:
                 for srna in record:
+                    if len(srna.list_hits)==0:
+                        dict = self.sRNA_hit_to_dict(srna,index)
+                        pd.DataFrame([dict]).to_excel(writer, startrow=row,
+                                                      sheet_name="{} summary".format(name + 'sRNA'), index=False,
+                                                      header=False)
+                        row = row + 1
                     for hit in srna.list_hits:
-                        dict = self.sRNA_hit_to_dict(srna, hit)
+                        dict = self.sRNA_hit_to_dict(srna, index, hit)
                         pd.DataFrame([dict]).to_excel(writer,startrow=row,sheet_name="{} summary".format(name + 'sRNA'), index=False, header=False)
                         row = row+1
                     row=row+1
+                index = index + 1
 
        #output = BytesIO()
            workbook = writer.book
