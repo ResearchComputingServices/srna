@@ -11,19 +11,19 @@ import pandas as pd
 from io import BytesIO
 import json
 import os.path
+from datetime import datetime
+import uuid
+import os
+import time
 
 
-DEBUG=5
-Entrez.email = "jazminromero@cunet.carleton.ca"  # Always tell NCBI who you are
+
+DEBUG=3
 
 
 class sRNA_Provider:
 
     blastProvider = Blast()
-
-
-
-
 
     def fetch_and_save_input_sequence(self, accession, base_directory):
         filename = base_directory + '/' + accession + ".gbk"
@@ -43,28 +43,34 @@ class sRNA_Provider:
         seq_record_list = list(seq_iterator)
         return seq_record_list
 
-    def fetch_input_sequence(self, accession, base_directory):
-        # Downloading...
-        handle = Entrez.efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
-        print("Parsing...")
-        seq_iterator = SeqIO.parse(handle, "genbank")
-        seq_record_list = list(seq_iterator)
+
+    def fetch_input_sequence(self, accession):
+        try:
+            # Downloading sequence
+            handle = Entrez.efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
+            seq_iterator = SeqIO.parse(handle, "genbank")
+            seq_record_list = list(seq_iterator)
+        except:
+            seq_record_list = []
+            print("Unexpected error at fetch_input_sequence:", sys.exc_info()[0])
+            traceback.print_exc()
+
         return seq_record_list
 
 
     #Reads a data file and return a list of seq_record
-    def read_input_sequence(self, input_file, format, alphabet):
+    def read_input_sequence(self, input_file, format):
+
         try:
-            if alphabet!='NULL':
-                seq_iterator = SeqIO.parse(input_file,format,alphabet)
-            else:
-                seq_iterator = SeqIO.parse(input_file,format)
+            seq_iterator = SeqIO.parse(input_file,format)
+            seq_record_list = list(seq_iterator)
         except:
+            seq_record_list=[]
             print("Unexpected error at read_sequence:", sys.exc_info()[0])
             traceback.print_exc()
 
-        seq_record_list = list(seq_iterator)
         return seq_record_list
+
 
 
     def __print_seq_record(self, seq_record):
@@ -192,6 +198,12 @@ class sRNA_Provider:
             start_sRNA_position = mid_position - half_length
             end_sRNA_position = start_sRNA_position + length
 
+            if start_sRNA_position<0:
+                start_sRNA_position = 0
+
+            if end_sRNA_position>len(sequence):
+                end_sRNA_position = len(sequence)
+
             #Note that end_SRNA_position is not inclusive. So the real sequence goes up to end_SRNA_position-1
             sub_sequence = sequence[start_sRNA_position:end_sRNA_position]
             sub_sequence = sub_sequence.reverse_complement()
@@ -222,6 +234,14 @@ class sRNA_Provider:
             half_length =  int((length-1)//2)    #We substract -1 due to the mid_position
             start_sRNA_position = mid_position - half_length
             end_sRNA_position = start_sRNA_position + length
+
+            if start_sRNA_position<0:
+                start_sRNA_position = 0
+
+            if end_sRNA_position > len(sequence):
+                end_sRNA_position = len(sequence)
+
+            # Note that end_SRNA_position is not inclusive. So the real sequence goes up to end_SRNA_position-1
             sub_sequence = sequence[start_sRNA_position:end_sRNA_position]
             sRNA = sRNA_Class(start_sRNA_position, end_sRNA_position, len(sub_sequence), sub_sequence, start_CDS, end_CDS, position, strand,
                               gene, locus_tag)
@@ -341,7 +361,7 @@ class sRNA_Provider:
 
 
 
-    def __blast_sRNA_against_genome(self, list_sRNA, e_cutoff, identity_perc_cutoff):
+    def __blast_sRNA_against_genome_v1(self, list_sRNA, e_cutoff, identity_perc_cutoff):
 
         query_file = "seq_sRNA.fasta"
         subject_file = "seq_Source.fasta"
@@ -355,6 +375,32 @@ class sRNA_Provider:
                     srna.list_hits = list_hits
 
 
+    def __blast_sRNA_against_genome(self, list_sRNA, e_cutoff, identity_perc_cutoff):
+
+        #Creates temporary files
+        query_file = str(uuid.uuid4()) + '.fasta'
+        subject_file = str(uuid.uuid4()) + '.fasta'
+
+        #query_file = "seq_sRNA.fasta"
+        #subject_file = "seq_Source.fasta"
+
+        for index, srna in enumerate(list_sRNA):
+            SeqIO.write(srna.input_sequence, subject_file, "fasta")
+            seq_sRNA = SeqRecord(srna.sequence_sRNA, id="sRNA")
+            SeqIO.write(seq_sRNA, query_file, "fasta")
+            if len(srna.sequence_sRNA)>0 and len(srna.input_sequence)>0 and len(srna.list_hits)==0:
+                    list_hits = self.blastProvider.blast(query_file, subject_file, str(srna.sequence_sRNA),float(e_cutoff), float(identity_perc_cutoff))
+                    srna.list_hits = list_hits
+
+        #Remove temporary files
+        if os.path.exists(query_file):
+            os.remove(query_file)
+
+        if os.path.exists(subject_file):
+            os.remove(subject_file)
+
+
+
 
     def blast_sRNAs_against_genome_for_DEBUG(self, list_sRNA, e_cutoff, identity_perc_cutoff):
         for list_sRNA_per_record in list_sRNA:
@@ -362,6 +408,8 @@ class sRNA_Provider:
             #list_sRNA_per_record_ = list_sRNA_per_record
             self.__blast_sRNA_against_genome(list_sRNA_per_record_, e_cutoff, identity_perc_cutoff)
         return (list_sRNA)
+
+
 
 
 
@@ -423,6 +471,11 @@ class sRNA_Provider:
             dict["Expected Value"]= hit.expect
             dict["Align Length"]= hit.align_length
             dict["Perc. Identity"]= (hit.score/srna.length_sRNA)*100
+            dict["sRNA Itself"] = ""
+            if srna.strand==-1 and srna.start_position_sRNA+1==int(hit.sbjct_start):
+                dict["sRNA Itself"] = "*"
+            if srna.strand==1 and srna.start_position_sRNA+1==int(hit.sbjct_end):
+                dict["sRNA Itself"] = "*"
         else:
             dict["Hit Start"] = ''
             dict["Hit End"] = ''
@@ -433,7 +486,7 @@ class sRNA_Provider:
         return dict
 
 
-    def write_tags_to_file(self, base_directory, list_sRNA):
+    def write_tags_to_file(self, base_directory, seq_file, list_sRNA):
         gene_tags = []
         locus_tags = []
 
@@ -462,38 +515,56 @@ class sRNA_Provider:
                     gene_tags.append('')
                     i = i + 1
 
-        file_name = base_directory + '/tags.xlsx'
+        current = datetime.now()
+        date_time = current.strftime("%m-%d-%Y %H:%M:%S")
+
+        name = seq_file
+        file_name = base_directory + '/' + name + '_' + date_time + '_tags.xlsx'
         dict = {'Gene_Tag': gene_tags, 'Locus_Tag': locus_tags}
         df = pd.DataFrame(dict)
         df.to_excel(file_name, header=True, index=False)
+        print('Exported tags to: {0}'.format(file_name))
 
 
 
-    def load_tags(self, file_name):
-        df = pd.read_excel(file_name)
-        gene_tags_input = df['Gene_Tag'].values.tolist()
-        locus_tags_input = df['Locus_Tag'].values.tolist()
+    def load_locus_gene_tags(self, file_name):
+        try:
+            gene_tags = []
+            locus_tags = []
 
-        #Clean lists
-        gene_tags = []
-        for tag in gene_tags_input:
-            if str(tag)!='nan':
-                gene_tags.append(tag)
+            df = pd.read_excel(file_name)
+            gene_tags_input = df['Gene_Tag'].values.tolist()
+            locus_tags_input = df['Locus_Tag'].values.tolist()
 
-        locus_tags = []
-        for tag in locus_tags_input:
-            if str(tag) != 'nan':
-                locus_tags.append(tag)
 
+            for tag in gene_tags_input:
+                if str(tag)!='nan':
+                    gene_tags.append(tag)
+
+
+            for tag in locus_tags_input:
+                if str(tag) != 'nan':
+                    locus_tags.append(tag)
+
+        except:
+            print("Unexpected error at load_locus_gene_tags:", sys.exc_info()[0])
+            traceback.print_exc()
 
         return gene_tags, locus_tags
 
 
 
+
     def export_sRNAs(self, list_sRNA, base_directory, seq_file, format, position, length, e_cutoff, perc_identity):
 
-       file_name = base_directory + '/srna.xlsx'
+       current = datetime.now()
+       date_time = current.strftime("%m-%d-%Y %H:%M:%S")
+
        name= seq_file
+       file_name = base_directory + '/' + name + '_' + date_time + '_srna.xlsx'
+
+
+       #Creates panda data frame with general info
        general_info = {
                     "User Parameters": '',
                     "Input File": seq_file,
@@ -504,10 +575,11 @@ class sRNA_Provider:
                     "Percentage Indentity": perc_identity
                     }
 
-       #df = pd.DataFrame([general_info])
        df_ginfo = pd.DataFrame.from_dict(general_info, orient='index')
        df_ginfo.rename(columns={0: ' '}, inplace=True)
 
+
+       #Creates panda date frame with column headings
        headings = {
            "Record": '',
            "sRNA": '',
@@ -524,57 +596,261 @@ class sRNA_Provider:
            "Hit End" : '',
            "Expected Value" : '',
            "Align Length": '',
-           "Perc. Identity": ''
+           "Perc. Identity": '',
+           "sRNA Itself": '',
        }
 
        df_headings = pd.DataFrame([headings])
 
-       with pd.ExcelWriter(file_name, engine='xlsxwriter') as writer:
-           df_ginfo.to_excel(writer, sheet_name="{} summary".format(name + 'sRNA'), index=True)
-           df_headings.to_excel(writer, startrow=9, sheet_name="{} summary".format(name + 'sRNA'), index=False)
 
-           row = 10
-           index = 0
-           for record in list_sRNA:
-                for srna in record:
-                    if len(srna.list_hits)==0:
-                        dict = self.sRNA_hit_to_dict(srna,index)
-                        pd.DataFrame([dict]).to_excel(writer, startrow=row,
-                                                      sheet_name="{} summary".format(name + 'sRNA'), index=False,
-                                                      header=False)
-                        row = row + 1
-                    for hit in srna.list_hits:
-                        dict = self.sRNA_hit_to_dict(srna, index, hit)
-                        pd.DataFrame([dict]).to_excel(writer,startrow=row,sheet_name="{} summary".format(name + 'sRNA'), index=False, header=False)
-                        row = row+1
-                    row=row+1
-                index = index + 1
-
-       #output = BytesIO()
-           workbook = writer.book
-           worksheet = writer.sheets["{} summary".format(name + 'sRNA')]
-           format = workbook.add_format()
-           format.set_align('left')
-           format.set_align('vcenter')
-           #worksheet.set_column('A:A', 16, format)
-           worksheet.set_column('A:N', 25, format)
-           writer.save()
+       #Creates panda data frame with sRNA information
+       list_rows = []
+       row = 10
+       index_record = 0
+       for record in list_sRNA:
+            for srna in record:
+                if len(srna.list_hits)==0:
+                    dict = self.sRNA_hit_to_dict(srna,index_record)
+                    list_rows.append(dict)
 
 
+                for hit in srna.list_hits:
+                    dict = self.sRNA_hit_to_dict(srna, index_record, hit)
+                    list_rows.append(dict)
+            index_record = index_record + 1
 
-    def write_json(self, list, filename):
+       df_rows = pd.DataFrame(list_rows)
+       #Writes frames to excel
+       writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
+       df_ginfo.to_excel(writer, sheet_name="{} summary".format(name + 'sRNA'), index=True)
+       df_headings.to_excel(writer, startrow=9, sheet_name="{} summary".format(name + 'sRNA'), index=False)
+       df_rows.to_excel(writer,sheet_name="{} summary".format(name + 'sRNA'), startrow=10, index=False, header=False)
+
+       # Close the Pandas Excel writer and output the Excel file.
+       writer.save()
 
 
-        list_dict = []
-        for item in list:
-            ini_list =[]
-            for sRNA in item:
-                if len(sRNA.list_hits)>0:
-                    #ini_list.append(sRNA.__dict__)
-                    ini_list.append(sRNA.to_dict())
-            list_dict.append(ini_list)
+    def sRNAs_to_data_frames(self, list_sRNA, seq_file, format, position, length, e_cutoff, perc_identity):
+
+        name = seq_file
+
+        # Creates panda data frame with general info
+        general_info = {
+            "User Parameters": '',
+            "Input File": seq_file,
+            "Format": format,
+            "Position": position,
+            "Length": length,
+            "Expected cutoff": e_cutoff,
+            "Percentage Indentity": perc_identity
+        }
+
+        df_ginfo = pd.DataFrame.from_dict(general_info, orient='index')
+        df_ginfo.rename(columns={0: ' '}, inplace=True)
+
+        # Creates panda date frame with column headings
+        headings = {
+            "Record": '',
+            "sRNA": '',
+            "Strand": '',
+            "Gene": '',
+            "Locus Tag": '',
+            "sRNA Start": '',
+            "sRNA End": '',
+            "sRNA Length": '',
+            "Shift/Position": '',
+            "CDS Start": '',
+            "CDS End": '',
+            "Hit Start": '',
+            "Hit End": '',
+            "Expected Value": '',
+            "Align Length": '',
+            "Perc. Identity": '',
+            "sRNA Itself": '',
+        }
+
+        df_headings = pd.DataFrame([headings])
+
+        # Creates panda data frame with sRNA information
+        list_rows = []
+        row = 10
+        index_record = 1
+        for record in list_sRNA:
+            for srna in record:
+                if len(srna.list_hits) == 0:
+                    dict = self.sRNA_hit_to_dict(srna, index_record)
+                    list_rows.append(dict)
+
+                for hit in srna.list_hits:
+                    dict = self.sRNA_hit_to_dict(srna, index_record, hit)
+                    list_rows.append(dict)
+            index_record = index_record + 1
+
+        df_rows = pd.DataFrame(list_rows)
+
+        return df_ginfo, df_headings, df_rows
 
 
-        with open(filename, 'w') as outfile:
-            json.dump(list_dict, outfile)
+
+    def tags_to_data_frame(self, list_sRNA):
+        gene_tags = []
+        locus_tags = []
+
+        for record in list_sRNA:
+            for sRNA in record:
+
+                for gene in sRNA.gene:
+                    if gene not in gene_tags:
+                        gene_tags.append(gene)
+
+                for locus in sRNA.locus_tag:
+                    if locus not in locus_tags:
+                        locus_tags.append(locus)
+
+        if len(gene_tags) != len(locus_tags):
+            if len(gene_tags) > len(locus_tags):
+                i = len(locus_tags)
+                while (i < len(gene_tags)):
+                    locus_tags.append('')
+                    i = i + 1
+
+            if len(locus_tags) > len(gene_tags):
+                i = len(gene_tags)
+                while (i < len(locus_tags)):
+                    gene_tags.append('')
+                    i = i + 1
+
+        dict = {'Gene_Tag': gene_tags, 'Locus_Tag': locus_tags}
+        df = pd.DataFrame(dict)
+        return df
+
+
+
+    def export_output_to_file(self, base_directory, seq_file, format, position, length, e_cutoff, perc_identity, e_hits, e_all, e_tags, list_sRNA_recomputed=None, list_sRNA=None):
+
+        current = datetime.now()
+        date_time = current.strftime("%m-%d-%Y %H:%M:%S")
+
+        name = seq_file
+        file_name = base_directory + '/' + name + '_' + date_time + '_srna.xlsx'
+
+        # Writes frames to excel
+        writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
+
+        #Export only sRNAS with hits
+        if e_hits and list_sRNA_recomputed:
+            df_ginfo, df_headings, df_rows = self.sRNAs_to_data_frames(list_sRNA_recomputed, seq_file, format, position, length, e_cutoff, perc_identity)
+            df_ginfo.to_excel(writer, sheet_name="Hits", index=True)
+            df_headings.to_excel(writer, startrow=9, sheet_name="Hits", index=False)
+            df_rows.to_excel(writer, sheet_name="Hits", startrow=10, index=False, header=False)
+
+        #Export all sRNAS
+        if e_all and list_sRNA:
+            df_ginfo, df_headings, df_rows = self.sRNAs_to_data_frames(list_sRNA, seq_file, format, position,length, e_cutoff, perc_identity)
+            df_ginfo.to_excel(writer, sheet_name="All", index=True)
+            df_headings.to_excel(writer, startrow=9, sheet_name="All", index=False)
+            df_rows.to_excel(writer, sheet_name="All", startrow=10, index=False, header=False)
+
+        #Export gene tags and locs tags of sRNAS with hits
+        if e_tags and list_sRNA_recomputed:
+            df = self.tags_to_data_frame(list_sRNA_recomputed)
+            df.to_excel(writer, sheet_name="Tags", header=True, index=False)
+
+        # Close the Pandas Excel writer and output the Excel file.
+        writer.save()
+        print ('Exported sRNA output to: {0}'.format(file_name))
+
+
+
+    def export_output(self, base_directory, seq_file, format, position, length, e_cutoff, perc_identity, e_hits, e_all, e_tags, list_sRNA_recomputed=None, list_sRNA=None):
+
+        # Writes frames to excel
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+
+        #Export only sRNAS with hits
+        if e_hits and list_sRNA_recomputed:
+            df_ginfo, df_headings, df_rows = self.sRNAs_to_data_frames(list_sRNA_recomputed, seq_file, format, position, length, e_cutoff, perc_identity)
+            df_ginfo.to_excel(writer, sheet_name="Hits", index=True)
+            df_headings.to_excel(writer, startrow=9, sheet_name="Hits", index=False)
+            df_rows.to_excel(writer, sheet_name="Hits", startrow=10, index=False, header=False)
+
+        #Export all sRNAS
+        if e_all and list_sRNA:
+            df_ginfo, df_headings, df_rows = self.sRNAs_to_data_frames(list_sRNA, seq_file, format, position,length, e_cutoff, perc_identity)
+            df_ginfo.to_excel(writer, sheet_name="All", index=True)
+            df_headings.to_excel(writer, startrow=9, sheet_name="All", index=False)
+            df_rows.to_excel(writer, sheet_name="All", startrow=10, index=False, header=False)
+
+        #Export gene tags and locs tags of sRNAS with hits
+        if e_tags and list_sRNA_recomputed:
+            df = self.tags_to_data_frame(list_sRNA_recomputed)
+            df.to_excel(writer, sheet_name="Tags", header=True, index=False)
+
+        # Close the Pandas Excel writer and output the Excel file.
+        writer.save()
+        output.seek(0)
+        return output
+
+
+
+
+    def compute_srnas(self, base_directory, seq_file, file_sequence_fullpath, format, position, length, e_cutoff, identity_perc_cutoff, file_tags, recompute_position):
+
+        start_program = time.time()
+        # Read Sequence
+        print('Reading input sequence\n')
+        sequence_record_list = self.read_input_sequence(file_sequence_fullpath, format)
+
+        if sequence_record_list and not len(sequence_record_list) > 0:
+            print('The specified format does not correspond to the input sequence.')
+            sys.exit()
+
+        name_seq = sequence_record_list[0].name
+        print(name_seq)
+
+        # Print sequence
+        #self.print_input_sequence(sequence_record_list)
+        print('Total Records: ', len(sequence_record_list))
+
+        # Compute sRNAS
+        if file_tags:
+            if os.path.isfile(file_tags):
+                print('Computing sRNAs for locus/gene tags \n')
+                gene_tags, locus_tags = self.load_locus_gene_tags(file_tags)
+                list_sRNA = self.compute_sRNAs_from_genome(sequence_record_list, int(position), int(length),gene_tags, locus_tags)
+            else:
+                print("Tag file could not be found!")
+                sys.exit(2)
+        else:
+            print('Computing all sRNAs\n')
+            list_sRNA = self.compute_sRNAs_from_genome(sequence_record_list, int(position), int(length))
+
+        print('Total of computed sRNAs', self.total_srnas(list_sRNA))
+        print('\n')
+
+        print('Blast each sRNA against input sequence\n')
+        self.blast_sRNAs_against_genome_for_DEBUG(list_sRNA, e_cutoff, identity_perc_cutoff)
+
+        #print ('Printing sRNA info \n')
+        #self.print_list_srna(list_sRNA,sequence_record_list)
+
+        print('Get sRNA with hits \n')
+        list_sRNA_with_hits = self.get_sRNAs_with_hits(list_sRNA)
+
+        if recompute_position:
+            print('Recompute sRNAs for sRNAs with hits')
+            list_sRNA_recomputed = self.recompute_sRNAs(list_sRNA_with_hits, 1, int(recompute_position), int(length))
+            self.blast_sRNAs_against_genome(list_sRNA_recomputed, e_cutoff, identity_perc_cutoff)
+
+        print('Export Info')
+        self.export_output_to_file(base_directory, seq_file, format, position, length, e_cutoff, identity_perc_cutoff, True, True, True, list_sRNA_recomputed, list_sRNA)
+
+        print('Write tags of sRNAs with hits to file')
+        self.write_tags_to_file(base_directory,seq_file, list_sRNA_recomputed)
+
+        end_program = time.time()
+        print('Elapsed minutes program in mins: ')
+        print((end_program - start_program) / 60)
+
 
