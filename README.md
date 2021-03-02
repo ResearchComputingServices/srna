@@ -1,12 +1,11 @@
 **Program to compute sRNAs for a given input genome in python**
 
-
 **How to run the program in your local machine**
   
 **Prerequisites**
  
 - Blast:
-1. If blast is not already installed, install blast in your local machine by following these instructions:
+If blast is not already installed, install blast in your local machine by following these instructions:
 
 https://www.ncbi.nlm.nih.gov/books/NBK279671/
 
@@ -47,6 +46,16 @@ Optional arguments | Meaning
   -h, --help       |    Shows help about how the program usage
   -t TAGS, --tags TAGS  | Excel file that includes the locus/gene tags to compute the sRNAS
   -r RECOMPUTE, --recompute RECOMPUTE | Shift position when recomputing sRNAS with hits
+
+**Examples:
+
+The directory *sequences* in the directory *srna* contains some sample genome sequences: K12.gb and JWGZ01.1.gbff. It also includes some samples of locus tags for these sequences.
+
+- Example 1:
+Suppose that you would like to compute all sRNAs for the sequence K12.gb. The position to compute the sRNAS would be -10 and the length of the sRNAS would be 19. Additionally, for the sRNAs that contain hits in the genome, the program should recompute these sRNAS with a position of -15. Assume that the program was installed in the following path: /home/srna. Therefore, the sequences are located at directory /home/srna/sequences. For this example, the program should be executed like this:
+
+
+
 
 
 
