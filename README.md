@@ -1,11 +1,11 @@
-<h1>Program to compute sRNAs for a given input genome in python
+<h1>Program to compute sRNAs for a given input genome in python<h1>
 
 The algorithm to compute sRNAs is provided by Prof. Alex Wong at Carleton University. 
 
-<h2>How to run the program in your local machine
+<h2>How to run the program in your local machine <h2>
   
-<h3>Prerequisites
-
+<h3>Prerequisites<h3>
+ 
 **Blast:**
 1. If blast is not already installed, install blast in your local machine by following these instructions:
 
@@ -19,7 +19,7 @@ https://www.ncbi.nlm.nih.gov/books/NBK279671/
 https://www.python.org/downloads/
 
 
-<h3> Run sRNA locally
+<h3> Run sRNA locally <h3>
   
  1. Donwload the latest release of the code.
  2. Go to the directory where the sRNA code is located.
@@ -30,31 +30,24 @@ https://www.python.org/downloads/
     *source ./env/bin/activate*
  5. The program to be run is *main.py* and the parameters that it receives are the following:
 
+Here is the order in which the program receives the parameters:
 
+*python main.py  sequence_file format_sequence shift_position length expected_cutoff identity_percentage_cutoff [-t TAGS] [-r RECOMPUTE]*
 
+Position Arguments | Meaning 
+-------------------|---------
+  sequence_file         | Sequence File that contains the genome (including absolute path)
+  format_sequence       | Format of the sequence file
+  shift_position        | Shift position to compute the sRNAs
+  length                | sRNAs length
+  expected_cutoff       | Expected cutoff when blasting sRNAs agains input genome
+  identity_percentage_cutoff |Percentage of identity used when blasting sRNAs agains input genome (a value between 0 and 1)
 
-
-usage: main.py [-h] [-t TAGS] [-r RECOMPUTE]
-               Sequence file Format sequence Shift position Length Expected cutoff Identity
-               Percentage Cutoff
-
-Computes sRNAs for a given genome
-
-positional arguments:
-  Sequence file         Sequence File that contains the genome (including absolute path)
-  Format sequence       Format of the sequence file
-  Shift position        Shift position to compute the sRNAs
-  Length                sRNAs length
-  Expected cutoff       Expected cutoff when blasting sRNAs agains input genome
-  Identity Percentage Cutoff
-                        Percentage of identity used when blasting sRNAs agains input genome
-                        (a value between 0 and 1)
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -t TAGS, --tags TAGS  Excel file that includes the locus/gene tags to compute the sRNAS
-  -r RECOMPUTE, --recompute RECOMPUTE
-                        Shift position when recomputing sRNAS with hits
+Optional arguments | Meaning
+------------------ | -------
+  -h, --help       |    Shows help about how the program usage
+  -t TAGS, --tags TAGS  | Excel file that includes the locus/gene tags to compute the sRNAS
+  -r RECOMPUTE, --recompute RECOMPUTE | Shift position when recomputing sRNAS with hits
 
 
 
