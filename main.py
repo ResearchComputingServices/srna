@@ -7,27 +7,27 @@ from sRNA_provider import sRNA_Provider
 my_parser = argparse.ArgumentParser(description='Computes sRNAs for a given genome')
 
 my_parser.add_argument('sequenceFile',
-                       metavar='Sequence file',
+                       metavar='sequence_file',
                        type=str,
                        help='Sequence File that contains the genome (including absolute path)')
 
 my_parser.add_argument('formatSequence',
-                       metavar='Format sequence',
+                       metavar='format_sequence',
                        type=str,
                        help='Format of the sequence file')
 
 my_parser.add_argument('shift',
-                       metavar='Shift position',
+                       metavar='shift_position',
                        type=int,
                        help='Shift position to compute the sRNAs')
 
 my_parser.add_argument('length',
-                       metavar='Length',
+                       metavar='length',
                        type=int,
                        help='sRNAs length')
 
 my_parser.add_argument('e_cutoff',
-                       metavar='Expected cutoff',
+                       metavar='expected_cutoff',
                        type=float,
                        help='Expected cutoff when blasting sRNAs agains input genome')
 
