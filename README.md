@@ -26,7 +26,9 @@ https://www.python.org/downloads/
     or by following these instructions: https://docs.python.org/3/library/venv.html
  4. Activate your virtual enviroment by typing:
     *source ./env/bin/activate*
- 5. The program to be run is *main.py* and the parameters that it receives are the following:
+ 5. Install the requirements for the enviroment:
+    *pip install -r requirements.txt*
+ 7. The program to be run is *main.py* and the parameters that it receives are the following:
 
 Here is the order in which the program receives the parameters:
 
