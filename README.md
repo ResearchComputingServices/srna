@@ -139,8 +139,11 @@ python main.py /home/srna/sequences/JWGZ01.1.gbff genbank -8 21 0.01 0.8 -r -10 
 
 
 ### References
+
 [1] https://carleton.ca/biology/people/alex-wong/
+
 [2] https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=FAQ
+
 [3]https://ase.tufts.edu/chemistry/walt/sepa/Activities/BLASTpractice.pdf
 
 
