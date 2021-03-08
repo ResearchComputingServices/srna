@@ -45,14 +45,13 @@ Let us define as *R = [R1, R2,…,Rn]* the set of sRNAs which have at least more
 We summarize next the steps of the sRNAs computation program.
 
 **Input:** 
---------------------- 
-A genome sequence | S 
+A genome sequence S 
 A set of gene/locus tags T (optional)
-A shift position | p 
-A length value | l 
-A cutoff expected value | expected_cutoff
-A cutoff percentage of identity | identity_percentage_cutoff  
-A second shift position | p’ p’<>p (optional)
+A shift position  p 
+A length value l 
+A cutoff expected value expected_cutoff
+A cutoff percentage of identity identity_percentage_cutoff  
+A second shift position p’ p’<>p (optional)
 
 **Output:**  a set of sRNAs R and a set of sRNAs R' (optional)
 
