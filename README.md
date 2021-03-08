@@ -89,11 +89,13 @@ https://www.python.org/downloads/
  4. Create a virtual enviroment for python by typing: 
     *python3 -m venv env*
     or by following these instructions: https://docs.python.org/3/library/venv.html
- 4. Activate your virtual enviroment by typing:
+ 5. Activate your virtual enviroment by typing:
     *source ./env/bin/activate*
- 5. Install the requirements for the enviroment:
+ 6. Install the requirements for the enviroment:
     *pip install -r requirements.txt*
  7. The program to be run is *main.py* and the parameters that it receives are the following:
+ 
+**Note: Steps 1, 4 and 6 will be executed the first time the sRNA program will be run. Afterwards, only excute steps 2, 5 and 7.**
 
 Here is the order in which the program receives the parameters:
 
