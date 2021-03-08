@@ -3,11 +3,11 @@
 
 The sRNA computation follows the algorithm provided by Prof. Alex Wong at Carleton University [1]. 
 
-Along with other parameters, the algorithm receives as input a genome sequence in a file. This file should contain two parts:  (1) annotations which gives the locations of different genomic features (such as genes, CDS, or tRNAs), and (2) the DNA sequence itself. The most common formats for this file are genbank and fasta.
+Along with other parameters, the algorithm receives as input a genome sequence in a file. This file should contain two parts:  (1) annotations which give the locations of different genomic features (such as genes, CDS, or tRNAs), and (2) the DNA sequence itself. The most common formats for this file are genbank and fasta.
 
 The algorithm will compute sRNAs from the CDS features. For simplicity, there are two varieties of CDS:  (1) the CDS whose position is written like: CDS *i..m*. This indicates that the gene in this CDS starts at the position *i* and ends at position *m*. We will refer to this CDS as "encoded forward".
 
-The second type of CDS are those whose position information includes the word "complement" CDS  *complemen(i..m)*.  The word "complement" means that the genome is encoded backwards. For complement CDS, *m* would be the start of the gene and *i* is the end of the gene. 
+The second type of CDS are those whose position information includes the word "complement" CDS  *complement(i..m)*.  The word "complement" means that the genome is encoded backwards. For complement CDS, *m* would be the start of the gene and *i* is the end of the gene. 
 
 Given a CDS *i…m*, for a gene encoded forward, the steps to compute a sRNA are the following.
  
@@ -34,12 +34,12 @@ Once again, there is no zero position *p=0*. For *p=-1*, *s* would be the positi
 
 ### Algorithm for computing a set of sRNAs from a genome
 
-We describe here the general steps behind the sRNA computation program. For a given input genome, the sRNA program can compute either the sRNAs for **all** CDS in the genome, or for **a subset** of these CDS. The user can specify for which CDS the sRNAs will be computed through a file of tags. Each tag  will correspond to a gene tag or a locus tag. If the tag is present in the genome, then a sRNA will be obtained for such tag as described in the previous section.
+We describe here the general steps behind the sRNA computation program. For a given input genome, the sRNA program can compute either the sRNAs for **all** CDS in the genome, or for **a subset** of these CDS. The user can specify for which CDS the sRNAs will be computed through a file of tags. Each tag  will correspond to a gene tag or a locus tag. If the tag is present in the genome, then a sRNA will be obtained for such a tag as described in the previous section.
 
-After the set of sRNAs is obtained, the next step will be to look for similar sequences to these sRNAs in the genome. This is to try to ensure that a sRNA only occur in the gene or CDS where the sRNA was obtained from. The similarity information will be obtained using BLAST [2].   
+After the set of sRNAs is obtained, the next step will be to look for similar sequences to these sRNAs in the genome. This is to try to ensure that a sRNA only occurs in the gene or CDS where the sRNA was obtained from. The similarity information will be obtained using BLAST [2].   
 For each sRNA, BLAST will output (among other information ) a set of subsequences with an E value and a percentage of identity. Let us call these subsequences “hits”. For each pair (sRNA, hit), there is an E value and a percentage of identity returned by BLAST.  The E value describes how many times you would “expect” a match (sRNA, hit) to occur in the genome by chance, the closer to zero the value of E, the less likely is that the match (sRNA ,hit) will occur more than once. The percentage of identity describes how similar is the hit to the sRNA sequence. The higher the value of the percentage, the more similar are the hit and the sRNA [2,3].  The user will specify the E value (expected_cutoff) and the percentage of identity (identity_percentage_cutoff) for which BLAST will do a cutoff. That is, BLAST will return only the hits that pass those thresholds. 
 
-Let us define as *R = [R1, R2,…,Rn]* the set of sRNAs which have at least more than hit with *E<=expected_cutoff* and *P>=identity_percentage_cutoff*. As an option, the user could specify if a second computation would take place. That is, if for each sRNA *Ri* in *R*, the program will identify from which CDS, *Ri* was obtained from and the program will re-obtain a new sRNA for that CDS at a different shift position *p’*, where *p<>p’*. After that the program, will BLAST the new set of reobtained sRNAs. 
+Let us define as *R = [R1, R2,…,Rn]* the set of sRNAs which have at least more than hit with *E<=expected_cutoff* and *P>=identity_percentage_cutoff*. As an option, the user could specify if a second computation would take place. That is, if for each sRNA *Ri* in *R*, the program will identify from which CDS, *Ri* was obtained from and the program will re-obtain a new sRNA for that CDS at a different shift position *p’*, where *p<>p’*. After that, the program will BLAST the new set of reobtained sRNAs. 
  
 We summarize next the steps of the sRNAs computation program.
 
@@ -83,18 +83,18 @@ https://www.python.org/downloads/
 
 **Run sRNA locally**
   
- 1. Donwload the latest release of the code.
+ 1. Download the latest release of the code.
  2. Go to the directory where the sRNA code (srna directory) is located.
- 4. Create a virtual enviroment for python by typing: 
+ 4. Create a virtual environment for python by typing: 
     *python3 -m venv env*
     or by following these instructions: https://docs.python.org/3/library/venv.html
- 5. Activate your virtual enviroment by typing:
+ 5. Activate your virtual environment by typing:
     *source ./env/bin/activate*
- 6. Install the requirements for the enviroment:
+ 6. Install the requirements for the environment:
     *pip install -r requirements.txt*
  7. The program to be run is *main.py* and the parameters that it receives are below.
  
-**Note: Steps 1, 4 and 6 will be executed the first time the sRNA program will be run. Afterwards, only excute steps 2, 5 and 7.**
+**Note: Steps 1, 4 and 6 will be executed the first time the sRNA program will be run. Afterwards, only execute steps 2, 5 and 7.**
 
 Here is the order in which the program receives the parameters:
 
@@ -106,7 +106,7 @@ Position Arguments | Meaning
   format_sequence       | Format of the sequence file (e.g., genbank, fasta, etc.)
   shift_position        | Shift position to compute the sRNAs
   length                | sRNAs length
-  expected_cutoff       | Expected cutoff when blasting sRNAs agains input genome
+  expected_cutoff       | Expected cutoff when blasting sRNAs against input genome
   identity_percentage_cutoff |Percentage of identity cutoff used when blasting sRNAs against input genome (a value between 0 and 1)
 
 Optional arguments | Meaning
@@ -121,7 +121,7 @@ The set of tags should follow the format as illustrated in the sample file tags_
 Gene_Tag	Locus_Tag![image](https://user-images.githubusercontent.com/72103416/110243569-faea2380-7f28-11eb-8f78-f9b12e555c56.png)
 
 **Output:**
-The program will export the computed sRNAs into an excel file which will be located in the subdirectory *sequences* under the *srna* directory. The name of the output file has this format sequence_file_datetime_srna.xlsx. In addition, the sRNA program also exports the set of gene and locus tag of the sRNAs that contain more than one hit in the genome. Notice that this file could be used as input to the program to recompute sRNAs (parameter -T). The name of the tag file has this format sequence_file_datetime_tags.xlsx.
+The program will export the computed sRNAs into an excel file which will be located in the subdirectory *sequences* under the *srna* directory. The name of the output file has this format sequence_file_datetime_srna.xlsx. In addition, the sRNA program also exports the set of gene and locus tags of the sRNAs that contain more than one hit in the genome. Notice that this file could be used as input to the program to recompute sRNAs (parameter -T). The name of the tag file has this format sequence_file_datetime_tags.xlsx.
 
 
 **Examples:**
