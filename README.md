@@ -103,12 +103,12 @@ Here is the order in which the program receives the parameters:
 
 Position Arguments | Meaning 
 -------------------|---------
-  sequence_file         | Sequence File that contains the genome (including absolute path)
-  format_sequence       | Format of the sequence file
+  sequence_file         | Sequence file that contains the genome (including absolute path)
+  format_sequence       | Format of the sequence file (e.g., genbank, fasta, etc.)
   shift_position        | Shift position to compute the sRNAs
   length                | sRNAs length
   expected_cutoff       | Expected cutoff when blasting sRNAs agains input genome
-  identity_percentage_cutoff |Percentage of identity used when blasting sRNAs agains input genome (a value between 0 and 1)
+  identity_percentage_cutoff |Percentage of identity cutoff used when blasting sRNAs against input genome (a value between 0 and 1)
 
 Optional arguments | Meaning
 ------------------ | -------
@@ -120,23 +120,30 @@ Optional arguments | Meaning
 The set of tags should follow the format as illustrated in the sample file tags_k12.xlsx. That is, the tags file should contain the following headers and in that order:
 
 Gene_Tag	Locus_Tag![image](https://user-images.githubusercontent.com/72103416/110243569-faea2380-7f28-11eb-8f78-f9b12e555c56.png)
- 
- 
+
+**Output:**
+The program will export the computed sRNAs into an excel file which will be located in the subdirectory *sequences* under the *srna* directory. The name of the output file has this format sequence_file_datetime_srna.xlsx. In addition, the sRNA program also exports the set of gene and locus tag of the sRNAs that contain more than one hit in the genome. Notice that this file could be used as input to the program to recompute sRNAs (parameter -T). The name of the tag file has this format sequence_file_datetime_tags.xlsx.
+
+
 **Examples:**
 
-The directory *sequences* in the directory *srna* contains some sample genome sequences: K12.gb and JWGZ01.1.gbff. It also includes some samples of locus tags for these sequences.
+The directory *sequences* in the directory *srna* contains some sample genome sequences: K12.gb and JWGZ01.1.gbff. It also includes some samples of locus/gene tags for these sequences.
 
 - Example 1:
-Suppose that you would like to compute all sRNAs for the sequence K12.gb. The format for this file is genbank. The position to compute the sRNAS would be -10 and the length of the sRNAS would be 19. The expected_cutoff and identity_percentage_cutoff  are 0.01 and 0.8, respectively. Additionally, for the sRNAs that contain hits in the genome, the program should recompute these sRNAS with a position of -15. Assume that the program was installed in the following path: /home/srna. Therefore, the sequences are located at directory /home/srna/sequences. For this example, the program should be executed like this:
+Suppose that you would like to compute **all** sRNAs for the sequence K12.gb. The format for this file is genbank. The position to compute the sRNAS would be -10 and the length of the sRNAS would be 19. The expected_cutoff and identity_percentage_cutoff  are 0.01 and 0.8, respectively. Additionally, for the sRNAs that contain hits in the genome, the program should recompute these sRNAS with a position of -15. Assume that the program was installed in the following path: /home/srna. Therefore, the sequences are located at directory /home/srna/sequences. For this example, the program should be executed like this:
 
 python main.py /home/srna/sequences/K12.gb genbank -10 19 0.01 0.8 -r -15
 
+The output of the program could look like this: K12.gb_03-08-2021 15:55:32_srna.xlsx and K12.gb_03-08-2021 15:55:34_tags.xlsx.
 
 - Example 2:
-Suppose that you would like to compute the sRNAs for the set of tags given in a file. The input file is JWGZ01.1.gbff and the set of tags if in tags_jwz.xlsx. The format for this file is again genbank. The position to compute the sRNAS would be -8 and the length of the sRNAS would be 21. The expected_cutoff and identity_percentage_cutoff  are 0.01 and 0.8, respectively. Additionally, for the sRNAs that contain hits in the genome, the program should recompute these sRNAS with a position of -10. Assume that the program was installed in the following path: /home/srna. Therefore, the sequences are located at directory /home/srna/sequences. For this example, the program should be executed like this:
+Suppose that you would like to compute the sRNAs for *a set* of gene/locus tags given in a file. The input file is JWGZ01.1.gbff and the set of tags is in tags_jwz.xlsx. The format for this file is genbank. The position to compute the sRNAs would be -8 and the length of the sRNAs would be 21. The expected_cutoff and identity_percentage_cutoff are 0.01 and 0.8, respectively. Additionally, for the sRNAs that contain hits in the genome, the program should recompute these sRNAs with a position of -10. Assume that the program was installed in the following path: /home/srna. Therefore, the sequences are located at directory /home/srna/sequences. For this example, the program should be executed like this:
 
 
 python main.py /home/srna/sequences/JWGZ01.1.gbff genbank -8 21 0.01 0.8 -r -10 -t home/srna/sequences/tags_jwz.xlsx
+
+The output of the program could look like this: JWGZ01.1.gbff_03-08-2021 16:03:55_srna.xlsx and JWGZ01.1.gbff_03-08-2021 16:03:55_tags.xlsx
+
 
 
 ### References
