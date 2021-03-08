@@ -99,7 +99,7 @@ https://www.python.org/downloads/
 
 Here is the order in which the program receives the parameters:
 
-*python main.py  sequence_file format_sequence shift_position length expected_cutoff identity_percentage_cutoff [-t TAGS] [-r RECOMPUTE]*
+*python main.py  sequence_file   format_sequence    shift_position    length    expected_cutoff    identity_percentage_cutoff    [-t TAGS]   [-r RECOMPUTE]*
 
 Position Arguments | Meaning 
 -------------------|---------
