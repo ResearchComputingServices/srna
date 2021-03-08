@@ -1,5 +1,5 @@
 
-### Algorithm for computing a sRNAs for a gene
+### Algorithm for computing a sRNAs for a given gene
 
 The sRNA computation follows the algorithm provided by Prof. Alex Wong at Carleton University [1]. 
 
