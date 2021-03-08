@@ -116,7 +116,7 @@ Optional arguments | Meaning
   -t TAGS, --tags TAGS  | Excel file that includes the locus/gene tags to compute the sRNAS
   -r RECOMPUTE, --recompute RECOMPUTE | Shift position when recomputing sRNAS with hits
   
-**Important:
+**Important:**
 The set of tags should follow the format as illustrated in the sample file tags_k12.xlsx. That is, the tags file should contain the following headers and in that order:
 
 Gene_Tag	Locus_Tag![image](https://user-images.githubusercontent.com/72103416/110243569-faea2380-7f28-11eb-8f78-f9b12e555c56.png)
