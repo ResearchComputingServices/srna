@@ -1,7 +1,7 @@
 
-##Algorithm
+## Algorithm
 
-###**Algorithm to compute a sRNAs for a gene**
+### **Algorithm to compute a sRNAs for a gene**
 
 The sRNA computation follows the algorithm provided by Prof. Alex Wong at Carleton University [1]. 
 
@@ -34,7 +34,7 @@ Once again, there is no zero position *p=0*. For *p=-1*, *s* would be the positi
 3. For a given parameter *l*, capture a *l* sequence with the *s* position in the middle. Let *h = (l-1)/2*. The sequence would be captured at the positions: *s-m…s+m*. **This is the sRNA sequence for the gene**.
  
 
-###**Algorithm to compute a set of sRNAs from a genome**
+### **Algorithm to compute a set of sRNAs from a genome**
 
 We describe here the general steps behind the sRNA computation program. For a given input genome, the sRNA program can compute either the sRNAs for all CDS in the genome, or for a subset of these CDS. The user can specify for which CDS the sRNAs will be computed through a file of tags. Each tag  will correspond to a gene tag or a locus tag. If the tag is present in the genome, then a sRNA will be obtained for such tag as described in the previous section.
 
@@ -65,9 +65,9 @@ A second shift position | p’ p’<>p (optional)
 6.	Otherwise, for each sRNA in Ri in R, determine from which CDS the Ri was obtained from and compute a new sRNA as described in Section 1 using p’ and l. Make this R' this new set of sRNAs.
 7.	Return R'
 
-##Program to compute sRNAs for a given input genome in python**
+## Program to compute sRNAs for a given input genome in python**
 
-###How to run the program in your local machine**
+### How to run the program in your local machine**
   
 **Prerequisites**
  
