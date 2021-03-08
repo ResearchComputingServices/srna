@@ -830,7 +830,7 @@ class sRNA_Provider:
         print('\n')
 
         print('Blast each sRNA against input sequence\n')
-        self.blast_sRNAs_against_genome_for_DEBUG(list_sRNA, e_cutoff, identity_perc_cutoff)
+        self.blast_sRNAs_against_genome(list_sRNA, e_cutoff, identity_perc_cutoff)
 
         #print ('Printing sRNA info \n')
         #self.print_list_srna(list_sRNA,sequence_record_list)
