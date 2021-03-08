@@ -1,7 +1,5 @@
 
-## Algorithm
-
-### **Algorithm to compute a sRNAs for a gene**
+### Algorithm for computing a sRNAs for a gene
 
 The sRNA computation follows the algorithm provided by Prof. Alex Wong at Carleton University [1]. 
 
@@ -10,6 +8,7 @@ Along with other parameters, the algorithm receives as input a genome sequence i
 The algorithm will compute sRNAs from the CDS features. For simplicity, there are two varieties of CDS:  (1) the CDS whose position is written like: CDS *i..m*. This indicates that the gene in this CDS starts at the position *i* and ends at position *m*. We will refer to this CDS as encoded forward.
 
 The second type of CDS are those whose position information includes the word "complement" CDS  *complemen(i..m)*.  The word "complement" means that the genome is encoded backwards. For complement CDS, *m* would be the start of the gene and *i* is the end of the gene. 
+
 
 Given a CDS *i…m*, for a gene encoded forward, the steps to compute a sRNA are the following.
  
@@ -34,19 +33,19 @@ Once again, there is no zero position *p=0*. For *p=-1*, *s* would be the positi
 3. For a given parameter *l*, capture a *l* sequence with the *s* position in the middle. Let *h = (l-1)/2*. The sequence would be captured at the positions: *s-m…s+m*. **This is the sRNA sequence for the gene**.
  
 
-### **Algorithm to compute a set of sRNAs from a genome**
+### Algorithm for computing a set of sRNAs from a genome
 
 We describe here the general steps behind the sRNA computation program. For a given input genome, the sRNA program can compute either the sRNAs for all CDS in the genome, or for a subset of these CDS. The user can specify for which CDS the sRNAs will be computed through a file of tags. Each tag  will correspond to a gene tag or a locus tag. If the tag is present in the genome, then a sRNA will be obtained for such tag as described in the previous section.
 
 After the set of sRNAs is obtained, the next step will be to look for similar sequences to these sRNAs in the genome. This is to try to ensure that an sRNA only occur in the gene or CDS where the sRNA was obtained from. The similarity information will be obtained using BLAST [2].   
-For each sRNA, BLAST will output (among other information ) a set of subsequences with an E value and a percentage of identity. Let us call these subsequences “hits”. For each pair (sRNA, hit), there is an E value and a percentage of identity returned by BLAST.  The E value describes how many times you would “expect” a match (sRNA, hit) to occur in the genome by chance, the closer to zero the value of E, the less likely is that the match (sRNA ,hit) will occur more than once. The percentage of identity describes how similar is the hit to the sRNA sequence. The higher the value of the percentage, the more similar are the hit and the sRNA [2].  The user will specify the E values (expected_cutoff) and the percentage of identity (identity_percentage_cutoff) for which BLAST will do a cutoff. That is, BLAST will return only the hits that pass those thresholds. 
+For each sRNA, BLAST will output (among other information ) a set of subsequences with an E value and a percentage of identity. Let us call these subsequences “hits”. For each pair (sRNA, hit), there is an E value and a percentage of identity returned by BLAST.  The E value describes how many times you would “expect” a match (sRNA, hit) to occur in the genome by chance, the closer to zero the value of E, the less likely is that the match (sRNA ,hit) will occur more than once. The percentage of identity describes how similar is the hit to the sRNA sequence. The higher the value of the percentage, the more similar are the hit and the sRNA [2,3].  The user will specify the E values (expected_cutoff) and the percentage of identity (identity_percentage_cutoff) for which BLAST will do a cutoff. That is, BLAST will return only the hits that pass those thresholds. 
 
 Let us define as *R = [R1, R2,…,Rn]* the set of sRNAs which have at least more than hit with *E<=expected_cutoff* and *P>=identity_percentage_cutoff*. As an option, the user could specify if a second computation would take place. That is, if for each sRNA *Ri* in *R*, the program will identify from which CDS, *Ri* was obtained from and it will re-obtain a new sRNA for that CDS at a different shift position *p’*, where *p<>p’*. After that the program, will BLAST the new set of reobtained sRNAs. 
  
 We summarize next the steps of the sRNAs computation program.
 
 **Input:** 
-
+--------------------- 
 A genome sequence | S 
 A set of gene/locus tags T (optional)
 A shift position | p 
@@ -65,9 +64,9 @@ A second shift position | p’ p’<>p (optional)
 6.	Otherwise, for each sRNA in Ri in R, determine from which CDS the Ri was obtained from and compute a new sRNA as described in Section 1 using p’ and l. Make this R' this new set of sRNAs.
 7.	Return R'
 
-## Program to compute sRNAs for a given input genome in python**
+## Program to compute sRNAs for a given input genome in python
 
-### How to run the program in your local machine**
+### How to run the program in your local machine
   
 **Prerequisites**
  
@@ -137,6 +136,12 @@ Suppose that you would like to compute the sRNAs for the set of tags given in a 
 
 
 python main.py /home/srna/sequences/JWGZ01.1.gbff genbank -8 21 0.01 0.8 -r -10 -t home/srna/sequences/tags_jwz.xlsx
+
+
+### References
+[1] https://carleton.ca/biology/people/alex-wong/
+[2] https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=FAQ
+[3]https://ase.tufts.edu/chemistry/walt/sepa/Activities/BLASTpractice.pdf
 
 
 
