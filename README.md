@@ -93,7 +93,7 @@ https://www.python.org/downloads/
     *source ./env/bin/activate*
  6. Install the requirements for the enviroment:
     *pip install -r requirements.txt*
- 7. The program to be run is *main.py* and the parameters that it receives are the following:
+ 7. The program to be run is *main.py* and the parameters that it receives are below.
  
 **Note: Steps 1, 4 and 6 will be executed the first time the sRNA program will be run. Afterwards, only excute steps 2, 5 and 7.**
 
