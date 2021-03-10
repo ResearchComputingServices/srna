@@ -100,20 +100,18 @@ Here is the order in which the program receives the parameters:
 
 *python main.py  sequence_file   format_sequence    shift_position    length    expected_cutoff    identity_percentage_cutoff    [-t TAGS]   [-r RECOMPUTE]*
 
-Position Arguments | Meaning 
--------------------|---------
-  sequence_file         | Sequence file that contains the genome (including absolute path)
-  format_sequence       | Format of the sequence file (e.g., genbank, fasta, etc.)
-  shift_position        | Shift position to compute the sRNAs
-  length                | sRNAs length
-  expected_cutoff       | Expected cutoff when blasting sRNAs against input genome
-  identity_percentage_cutoff |Percentage of identity cutoff used when blasting sRNAs against input genome (a value between 0 and 1)
+- Position Arguments:
+  - sequence_file: Sequence file that contains the genome (including absolute path)
+  - format_sequence: Format of the sequence file (e.g., genbank, fasta, etc.)
+  - shift_position: Shift position to compute the sRNAs
+  - length: sRNAs length
+  - expected_cutoff: Expected cutoff when blasting sRNAs against input genome
+  - identity_percentage_cutoff: Percentage of identity cutoff used when blasting sRNAs against input genome (a value between 0 and 1)
 
-Optional arguments | Meaning
------------------- | -------
-  -h, --help       |    Shows help about how the program usage
-  -t TAGS, --tags TAGS  | Excel file that includes the locus/gene tags to compute the sRNAS
-  -r RECOMPUTE, --recompute RECOMPUTE | Shift position when recomputing sRNAS with hits
+- Optional arguments:
+  - -h, --help: Shows help about how the program usage
+  - -t TAGS, --tags TAGS: Excel file that includes the locus/gene tags to compute the sRNAS
+  - -r RECOMPUTE, --recompute RECOMPUTEShift position when recomputing sRNAS with hits
   
 **Important:**
 The set of tags should follow the format as illustrated in the sample file tags_k12.xlsx. That is, the tags file should contain the following headers and in that order:
