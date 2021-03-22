@@ -93,20 +93,20 @@ if recompute_position_st:
             sys.exit()
 
 
-    print ('Computing sRNAS with the following paramenters')
-    print('Input file:', file_sequence_fullpath)
-    print('Format: ', format)
-    print('Position for sRNA computation: ', position)
-    print('Length sRNA: ', length)
-    print('Expected cutoff (blast): ', e_cutoff)
-    print('Percentage Identity cutoff (blast): ', identity_perc_cutoff)
-    if file_tags:
-        print('File tags: ', file_tags)
-    if recompute_position_st:
-        print ('Position for recomputing: ', recompute_position)
+print ('Computing sRNAS with the following paramenters')
+print('Input file:', file_sequence_fullpath)
+print('Format: ', format)
+print('Position for sRNA computation: ', position)
+print('Length sRNA: ', length)
+print('Expected cutoff (blast): ', e_cutoff)
+print('Percentage Identity cutoff (blast): ', identity_perc_cutoff)
+if file_tags:
+    print('File tags: ', file_tags)
+if recompute_position_st:
+    print ('Position for recomputing: ', recompute_position)
 
-    sRNA_provider = sRNA_Provider()
-    sRNA_provider.compute_srnas(base_directory, seq_file, file_sequence_fullpath, format, position, length, e_cutoff, identity_perc_cutoff, file_tags, recompute_position)
+sRNA_provider = sRNA_Provider()
+sRNA_provider.compute_srnas(base_directory, seq_file, file_sequence_fullpath, format, position, length, e_cutoff, identity_perc_cutoff, file_tags, recompute_position)
 
 
 
