@@ -19,12 +19,12 @@ my_parser.add_argument('formatSequence',
 my_parser.add_argument('shift',
                        metavar='shift_position',
                        type=int,
-                       help='Shift position to compute the sRNAs')
+                       help='Offset position to compute the asRNAs')
 
 my_parser.add_argument('length',
                        metavar='length',
                        type=int,
-                       help='sRNAs length')
+                       help='asRNAs length')
 
 my_parser.add_argument('e_cutoff',
                        metavar='expected_cutoff',
