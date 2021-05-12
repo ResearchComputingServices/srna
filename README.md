@@ -36,8 +36,8 @@ Once again, there is no zero position *p=0*. For *p=-1*, *s* would be the positi
 
 We describe here the general steps behind CAREn. For a given input genome, CAREn can compute either the asRNAs for **all** CDS in the genome, or for **a subset** of these CDS. The user can specify for which CDS the antisense RNAs (asRNAs) will be computed through a file of tags. Each tag  will correspond to a gene tag or a locus tag. If the tag is present in the genome, then an asRNA will be obtained for such a tag as described in the previous section.
 
-After the set of asRNAs is obtained, the next step will be to look for similar sequences to these RNAs in the genome. This is to try to ensure that an asRNA only occurs in the gene or CDS where the asRNA was obtained from. The similarity information will be obtained using BLAST [2].   
-For each asRNA, BLAST will output (among other information) a set of subsequences with an E value and a percentage of identity. Let us call these subsequences “hits”. For each pair (asRNA, hit), there is an E value and a percentage of identity returned by BLAST.  The E value describes how many times you would “expect” a match (asRNA, hit) to occur in the genome by chance, the closer to zero the value of E, the less likely is that the match (asRNA ,hit) will occur more than once. The percentage of identity describes how similar is the hit to the asRNA sequence. The higher the value of the percentage, the more similar are the hit and the asRNA [2,3].  The user will specify the E value (expected_cutoff) and the percentage of identity (identity_percentage_cutoff) for which BLAST will do a cutoff. That is, BLAST will return only the hits that pass those thresholds. 
+After the set of asRNAs is obtained, the next step will be to look for similar sequences to these RNAs in the genome. This is to try to ensure that an asRNA only occurs in the gene or CDS where the asRNA was obtained from. The similarity information will be obtained using BLAST [1].   
+For each asRNA, BLAST will output (among other information) a set of subsequences with an E value and a percentage of identity. Let us call these subsequences “hits”. For each pair (asRNA, hit), there is an E value and a percentage of identity returned by BLAST.  The E value describes how many times you would “expect” a match (asRNA, hit) to occur in the genome by chance, the closer to zero the value of E, the less likely is that the match (asRNA ,hit) will occur more than once. The percentage of identity describes how similar is the hit to the asRNA sequence. The higher the value of the percentage, the more similar are the hit and the asRNA [1,2].  The user will specify the E value (expected_cutoff) and the percentage of identity (identity_percentage_cutoff) for which BLAST will do a cutoff. That is, BLAST will return only the hits that pass those thresholds. 
 
 Let us define as *R = [R1, R2,…,Rn]* the set of asRNAs which have more than one hit with *E<=expected_cutoff* and *P>=identity_percentage_cutoff*. As an option, the user could specify if a second computation would take place. That is, if for each asRNA *Ri* in *R*, the program will identify from which CDS *Ri* was obtained from and the program will re-obtain a new asRNA for that CDS at a different shift position *p’*, where *p<>p’*. After that, the program will BLAST the new set of reobtained asRNAs. 
  
@@ -145,11 +145,9 @@ The output of the program could look like this: JWGZ01.1.gbff_03-08-2021 16:03:5
 
 ### References
 
-[1] https://carleton.ca/biology/people/alex-wong/
+[1] https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=FAQ
 
-[2] https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=FAQ
-
-[3]https://ase.tufts.edu/chemistry/walt/sepa/Activities/BLASTpractice.pdf
+[2]https://ase.tufts.edu/chemistry/walt/sepa/Activities/BLASTpractice.pdf
 
 
 
