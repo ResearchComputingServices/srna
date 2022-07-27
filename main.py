@@ -9,12 +9,12 @@ my_parser = argparse.ArgumentParser(description='Computes sRNAs for a given geno
 my_parser.add_argument('sequenceFile',
                        metavar='sequence_file',
                        type=str,
-                       help='Sequence File that contains the genome (including absolute path)')
+                       help='Annotated genome file (including absolute path)')
 
 my_parser.add_argument('formatSequence',
                        metavar='format_sequence',
                        type=str,
-                       help='Format of the sequence file')
+                       help='Format of the annotated genome file')
 
 my_parser.add_argument('shift',
                        metavar='shift_position',
