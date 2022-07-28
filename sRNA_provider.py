@@ -611,7 +611,7 @@ class sRNA_Provider:
         return dict
 
 
-    def write_tags_to_file(self, base_directory, seq_file, list_sRNA):
+    def write_tags_to_file(self, base_directory, seq_file, list_sRNA, excel_output=True, csv_output=False):
         gene_tags = []
         locus_tags = []
 
@@ -644,11 +644,16 @@ class sRNA_Provider:
         date_time = current.strftime("%m-%d-%Y %H:%M:%S")
 
         name = seq_file
-        file_name = base_directory + '/' + name + '_' + date_time + '_tags.xlsx'
+        file_name = base_directory + '/' + name + '_' + date_time + '_tags'
         dict = {'Gene_Tag': gene_tags, 'Locus_Tag': locus_tags}
         df = pd.DataFrame(dict)
-        df.to_excel(file_name, header=True, index=False)
-        print('Exported tags to: {0}'.format(file_name))
+        if excel_output:
+            df.to_excel(file_name+'.xlsx', header=True, index=False)
+            print('Exported tags to: {0}'.format(file_name+'.xlsx'))
+        if csv_output:
+            df.to_csv(file_name+'.csv', header=True, index=False)
+            print('Exported tags to: {0}'.format(file_name+'.csv'))
+            
 
 
 
@@ -749,16 +754,17 @@ class sRNA_Provider:
 
         return df_ginfo, df_headings, df_rows
 
-    def export_output_to_file(self, base_directory, seq_file, name_seq, description_seq, format, position, position_rec, length, e_cutoff, perc_identity, list_sRNA_recomputed=None, list_sRNA=None, gene_tags_input=None, locus_tags_input=None, input_tags_filename=None):
+    def export_output_to_file(self, base_directory, seq_file, name_seq, description_seq, format, position, position_rec, length, e_cutoff, perc_identity, list_sRNA_recomputed=None, list_sRNA=None, gene_tags_input=None, locus_tags_input=None, input_tags_filename=None, excel_output=True, csv_output=False):
 
         current = datetime.now()
         date_time = current.strftime("%m-%d-%Y %H:%M:%S")
 
         name = seq_file
-        file_name = base_directory + '/' + name + '_' + date_time + '_asrna.xlsx'
+        base_filename = os.path.join(base_directory, f"{name}_{date_time}_asrna")
+        excel_filename = base_filename + '.xlsx'
 
         # Writes frames to excel
-        writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
+        writer = pd.ExcelWriter(excel_filename, engine='xlsxwriter')
 
 
         #Check if there is blast info
@@ -895,10 +901,27 @@ class sRNA_Provider:
 
         # Close the Pandas Excel writer and output the Excel file.
         writer.save()
-        print ('Exported sRNA output to: {0}'.format(file_name))
 
 
-    def compute_srnas(self, base_directory, seq_file, file_sequence_fullpath, format, position, length, e_cutoff, identity_perc_cutoff, file_tags, recompute_position):
+        # Convert Excel to CSV, if CSV output was requested
+        if csv_output:
+            sheets = pd.read_excel(excel_filename, sheet_name=None)
+            for sheet_name in sheets.keys():
+                csv_filename = f"{base_filename}_{sheet_name}.csv"
+                sheets[sheet_name].to_csv(csv_filename, header=False, index=False)
+            print (f"Exported sRNA output to: {base_filename}_*.csv")
+
+        if excel_output:
+            print ('Exported sRNA output to: {0}'.format(excel_filename))
+        else:
+
+            # If user only asked for CSV output, the Excel file was
+            # only temporarily needed for conversion to CSV.  In this
+            # case, delete the Excel file
+            os.unlink(excel_filename)
+
+
+    def compute_srnas(self, base_directory, seq_file, file_sequence_fullpath, format, position, length, e_cutoff, identity_perc_cutoff, file_tags, recompute_position, excel_output, csv_output):
 
         start_program = time.time()
         # Read Sequence
@@ -956,10 +979,10 @@ class sRNA_Provider:
             list_sRNA_recomputed = []
 
         print('Export Info')
-        self.export_output_to_file(base_directory, seq_file, name_seq, description_seq, format, position, recompute_position, length, e_cutoff, identity_perc_cutoff, list_sRNA_recomputed, list_sRNA, gene_tags, locus_tags, file_tags)
+        self.export_output_to_file(base_directory, seq_file, name_seq, description_seq, format, position, recompute_position, length, e_cutoff, identity_perc_cutoff, list_sRNA_recomputed, list_sRNA, gene_tags, locus_tags, file_tags, excel_output, csv_output)
 
         print('Write tags of sRNAs with hits to file')
-        self.write_tags_to_file(base_directory,seq_file, list_sRNA_recomputed,)
+        self.write_tags_to_file(base_directory,seq_file, list_sRNA_recomputed,excel_output, csv_output)
 
         end_program = time.time()
         print('Elapsed minutes program in mins: ')

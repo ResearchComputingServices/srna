@@ -46,6 +46,15 @@ my_parser.add_argument('-r',
                        action='store',
                        help='Shift position when recomputing sRNAS with hits')
 
+my_parser.add_argument('-c',
+                       '--csv',
+                       action='store_true',
+                       help='Save output to CSV format files (default Excel format only)')
+
+my_parser.add_argument('-e',
+                       '--excel',
+                       action='store_true',
+                       help='Save output to Excel format files (default Excel format only)')
 
 # Execute the parse_args() method
 args = my_parser.parse_args()
@@ -58,6 +67,8 @@ e_cutoff = args.e_cutoff
 identity_perc_cutoff = args.identity_perc_cutoff
 file_tags = args.tags
 recompute_position_st = args.recompute
+excel_output = args.excel or not args.csv
+csv_output = args.csv
 
 if file_sequence_fullpath:
     split = os.path.split(file_sequence_fullpath)
@@ -106,7 +117,7 @@ if recompute_position_st:
     print ('Position for recomputing: ', recompute_position)
 
 sRNA_provider = sRNA_Provider()
-sRNA_provider.compute_srnas(base_directory, seq_file, file_sequence_fullpath, format, position, length, e_cutoff, identity_perc_cutoff, file_tags, recompute_position)
+sRNA_provider.compute_srnas(base_directory, seq_file, file_sequence_fullpath, format, position, length, e_cutoff, identity_perc_cutoff, file_tags, recompute_position, excel_output, csv_output)
 
 
 
